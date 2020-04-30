@@ -21,11 +21,20 @@ func TaskManager(session *discordgo.Session, event *discordgo.MessageCreate, db 
 	case "add":
 		taskAdd(session, event, messages, db)
 	case "list":
-		taskList(session, event, db)
+		taskList(session, event, messages, db)
 	case "remove":
 		deleteValue := messages[2]
 		taskDelete(session, event, db, deleteValue)
+	case "help":
+		help(session, event)
 	}
+}
+
+func help(session *discordgo.Session, event *discordgo.MessageCreate) {
+	helpMessage := "***課題管理BOT***\n```!task add <task> <limit> <subject>```\ntask: 課題名\nlimit: 締め切り(初期値=翌日)\nsubject: 教科(初期値='')\nこれは後方を削って使用することが可能です\n"
+	helpMessage += "```!task list <subject>```\n課題一覧を表示します\n<subject>を指定すると教科ごとの絞り込みが可能です\n"
+	helpMessage += "```!task remove <task>```\n課題を課題名から検索して削除します"
+	session.ChannelMessageSend(event.ChannelID, helpMessage)
 }
 
 func taskAdd(session *discordgo.Session, event *discordgo.MessageCreate, messages []string, db *sql.DB) {
@@ -74,8 +83,15 @@ func taskAdd(session *discordgo.Session, event *discordgo.MessageCreate, message
 	session.ChannelMessageSend(event.ChannelID, message)
 }
 
-func taskList(session *discordgo.Session, event *discordgo.MessageCreate, db *sql.DB) {
-	rows, err := db.Query(`SELECT * FROM TASKS`)
+func taskList(session *discordgo.Session, event *discordgo.MessageCreate, messages []string, db *sql.DB) {
+	var rows *sql.Rows
+	var err error
+
+	if len(messages) < 3 {
+		rows, err = db.Query(`SELECT * FROM TASKS`)
+	} else {
+		rows, err = db.Query(`SELECT * FROM TASKS WHERE SUBJECT=?`, messages[2])
+	}
 	defer rows.Close()
 	if err != nil {
 		session.ChannelMessageSend(event.ChannelID, "値の取り出しでエラーが発生しました")
