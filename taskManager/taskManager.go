@@ -1,6 +1,7 @@
 package taskManager
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
@@ -12,19 +13,7 @@ import (
 
 var jst *time.Location = time.FixedZone("Asia/Tokyo", 9*60*60)
 
-func TaskManager(session *discordgo.Session, event *discordgo.MessageCreate) {
-	if event.Author.ID == session.State.User.ID {
-		return
-	}
-
-	if !strings.HasPrefix(event.Content, "!task") {
-		return
-	}
-
-	if len(event.Content) < 7 {
-		return
-	}
-
+func TaskManager(session *discordgo.Session, event *discordgo.MessageCreate, db *sql.DB) {
 	messages := strings.Split(event.Content, " ")
 	command := messages[1]
 
@@ -65,7 +54,8 @@ func TaskManager(session *discordgo.Session, event *discordgo.MessageCreate) {
 			}
 			subject = messages[4]
 		}
-		createTask(task, limit, subject)
+		createTask(task, limit, subject, db)
+
 	}
 }
 
@@ -95,6 +85,20 @@ func strToLimit(message string) (time.Time, error) {
 	return createdTime, nil
 }
 
-func createTask(task string, limit time.Time, subject string) {
+func createTask(task string, limit time.Time, subject string, db *sql.DB) error {
+	date := fmt.Sprintf("%d-%d-%d", limit.Year(), int(limit.Month()), limit.Day())
+	err := insertToDB(task, date, subject, db)
 
+	if err != nil {
+		return error(err)
+	}
+	return nil
+}
+
+func insertToDB(task string, limit string, subject string, db *sql.DB) error {
+	_, err := db.Exec(`INSERT INTO TASKS("TASK","LIMIT","SUBJECT") VALUES(?,?,?)`, task, limit, subject)
+	if err != nil {
+		return error(err)
+	}
+	return nil
 }

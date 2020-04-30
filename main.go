@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
@@ -53,16 +54,22 @@ func createFirstTable() {
 }
 
 func onMessageCreate(session *discordgo.Session, event *discordgo.MessageCreate) {
-	taskManager.TaskManager(session, event)
+	if event.Author.ID == session.State.User.ID {
+		return
+	}
+
+	if strings.HasPrefix(event.Content, "!task") && len(event.Content) >= 8 {
+		taskManager.TaskManager(session, event, db)
+		return
+	}
 }
 
 func loadTokenFromEnv() string {
 	fp, err := os.Open(".env")
+	defer fp.Close()
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	defer fp.Close()
 
 	scanner := bufio.NewScanner(fp)
 	var token string
