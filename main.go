@@ -1,16 +1,29 @@
 package main
 
 import (
+	"TaskInfoBot/taskManager"
 	"bufio"
+	"database/sql"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	_ "github.com/mattn/go-sqlite3"
 )
 
+var db *sql.DB
+
 func main() {
+	tmp, err := sql.Open("sqlite3", "./db.sqlite3")
+	db = tmp
+
+	if err != nil {
+		panic(err)
+	}
+	createFirstTable()
+
 	discord, err := discordgo.New()
 	discord.Token = loadTokenFromEnv()
 
@@ -32,8 +45,15 @@ func main() {
 	<-sc
 }
 
+func createFirstTable() {
+	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS "TASKS" ("ID" INTEGER PRIMARY KEY, "TASK" TEXT, "LIMIT" TEXT, "SUBJECT" TEXT);`)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func onMessageCreate(session *discordgo.Session, event *discordgo.MessageCreate) {
-	TaskManager(session, event)
+	taskManager.TaskManager(session, event)
 }
 
 func loadTokenFromEnv() string {
