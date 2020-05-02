@@ -73,7 +73,7 @@ func main() {
 }
 
 func createFirstTable() {
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS "TASKS" ("ID" INTEGER PRIMARY KEY, "TASK" TEXT, "LIMIT" TEXT, "SUBJECT" TEXT);`)
+	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS "TASKS" ("ID" INTEGER PRIMARY KEY, "TASK" TEXT, "LIMIT" TEXT, "SUBJECT" TEXT, "COURSE" TEXT);`)
 	if err != nil {
 		panic(err)
 	}

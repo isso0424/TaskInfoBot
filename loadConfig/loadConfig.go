@@ -2,7 +2,6 @@ package loadConfig
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 )
 
@@ -58,6 +57,5 @@ func LoadConfig() Config {
 
 	json.Unmarshal(raw, &config)
 
-	fmt.Println(config)
 	return config
 }

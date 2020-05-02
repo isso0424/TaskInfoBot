@@ -43,12 +43,12 @@ func taskAdd(session *discordgo.Session, event *discordgo.MessageCreate, message
 			return
 		}
 	}
-	fmt.Println(checkSubjectIsDefine(subject))
 	if !checkSubjectIsDefine(subject) {
-		session.ChannelMessage(event.ChannelID, "データの作成に失敗しました\n有効な教科の名前を指定してください")
+		session.ChannelMessageSend(event.ChannelID, "データの作成に失敗しました\n有効な教科の名前を指定してください")
 		return
 	}
-	err := createTask(task, limit, subject, db)
+	course := searchCourseWithSubject(subject)
+	err := createTask(task, limit, subject, course, db)
 
 	if err != nil {
 		session.ChannelMessageSend(event.ChannelID, "データの作成に失敗しました\n課題の名前の重複などが無いか確認してください")
@@ -85,12 +85,12 @@ func strToLimit(message string) (time.Time, error) {
 	return createdTime, nil
 }
 
-func createTask(task string, limitDate time.Time, subject string, db *sql.DB) error {
+func createTask(task string, limitDate time.Time, subject string, course string, db *sql.DB) error {
 	limit := fmt.Sprintf("%d-%d-%d", limitDate.Year(), int(limitDate.Month()), limitDate.Day())
 	if checkTaskNameConflict(task, db) {
 		return errors.New("NAME IS CONFLICTED")
 	}
-	_, err := db.Exec(`INSERT INTO TASKS("TASK","LIMIT","SUBJECT") VALUES(?,?,?)`, task, limit, subject)
+	_, err := db.Exec(`INSERT INTO TASKS("TASK","LIMIT","SUBJECT","COURSE") VALUES(?,?,?,?)`, task, limit, subject, course)
 	if err != nil {
 		return error(err)
 	}
@@ -117,4 +117,17 @@ func checkSubjectIsDefine(subject string) bool {
 		}
 	}
 	return false
+}
+
+func searchCourseWithSubject(subject string) string {
+	for key, courseSubject := range courseSubjects {
+		fmt.Printf(key)
+		for _, s := range courseSubject {
+			if subject == s {
+				return key
+			}
+		}
+	}
+
+	return ""
 }
