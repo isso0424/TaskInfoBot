@@ -15,37 +15,38 @@ func taskAdd(session *discordgo.Session, event *discordgo.MessageCreate, message
 	var task string
 	var limit time.Time
 	var subject string
-	switch len(messages) {
-	case 2:
-		// 引数不足により失敗
+	if event.ChannelID != config.Channels.Regist {
+		session.ChannelMessageSend(event.ChannelID, fmt.Sprintf("課題を登録する際は<#%s>で行ってください", config.Channels.Regist))
 		return
-	case 3:
-		// taskだけ指定
-		task = messages[2]
-		t := time.Now()
-		limit = time.Date(t.Year(), t.Month(), t.Day()+1, 0, 0, 0, 0, jst)
-		subject = ""
+	}
+	switch len(messages) {
+	case 2, 3:
+		// 引数不足により失敗
+		session.ChannelMessageSend(event.ChannelID, "引数が足りません\n最低でも2個は必要です")
+		return
 
 	case 4:
 		// limitまで指定
-		var err error
 		task = messages[2]
-		limit, err = strToLimit(messages[3])
-		if err != nil {
-			session.ChannelMessageSend(event.ChannelID, "日付の指定は n/m でまともな日付の範囲で指定してください")
-			return
-		}
+		subject = messages[3]
+		t := time.Now()
+		limit = time.Date(t.Year(), t.Month(), t.Day()+1, 0, 0, 0, 0, jst)
 
 	case 5:
 		// 全指定
 		var err error
 		task = messages[2]
-		limit, err = strToLimit(messages[3])
+		subject = messages[3]
+		limit, err = strToLimit(messages[4])
 		if err != nil {
 			session.ChannelMessageSend(event.ChannelID, "日付の指定は n/m で指定してください")
 			return
 		}
-		subject = messages[4]
+	}
+	fmt.Println(checkSubjectIsDefine(subject))
+	if !checkSubjectIsDefine(subject) {
+		session.ChannelMessage(event.ChannelID, "データの作成に失敗しました\n有効な教科の名前を指定してください")
+		return
 	}
 	err := createTask(task, limit, subject, db)
 
@@ -105,6 +106,15 @@ func checkTaskNameConflict(task string, db *sql.DB) bool {
 
 	for rows.Next() {
 		return true
+	}
+	return false
+}
+
+func checkSubjectIsDefine(subject string) bool {
+	for _, tmpSubject := range availabilitySubjects {
+		if subject == tmpSubject {
+			return true
+		}
 	}
 	return false
 }

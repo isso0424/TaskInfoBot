@@ -1,6 +1,7 @@
 package main
 
 import (
+	"TaskInfoBot/loadConfig"
 	"TaskInfoBot/taskManager"
 	"TaskInfoBot/taskNotify"
 	"bufio"
@@ -27,13 +28,16 @@ func main() {
 			fmt.Println(err)
 		}
 	}
+
 	tmp, err := sql.Open("sqlite3", dbFileName)
 	db = tmp
-
 	if err != nil {
 		panic(err)
 	}
 	createFirstTable()
+
+	config := loadConfig.LoadConfig()
+	taskManager.SetConfig(config)
 
 	discord, err := discordgo.New()
 	discord.Token = loadTokenFromEnv()

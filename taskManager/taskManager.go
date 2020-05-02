@@ -1,6 +1,7 @@
 package taskManager
 
 import (
+	"TaskInfoBot/loadConfig"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -10,10 +11,18 @@ import (
 )
 
 var jst *time.Location = time.FixedZone("Asia/Tokyo", 9*60*60)
+var config loadConfig.Config
+var configuration = false
+var availabilitySubjects []string
 
 func TaskManager(session *discordgo.Session, event *discordgo.MessageCreate, db *sql.DB) {
 	messages := strings.Split(event.Content, " ")
 	command := messages[1]
+
+	if !configuration {
+		session.ChannelMessageSend(event.ChannelID, "授業一覧が登録されていません")
+		return
+	}
 
 	switch command {
 	case "add":
@@ -71,4 +80,17 @@ func taskDelete(session *discordgo.Session, event *discordgo.MessageCreate, db *
 		return
 	}
 	session.ChannelMessageSend(event.ChannelID, fmt.Sprintf("%sを削除しました", deleteValue))
+}
+
+func SetConfig(assignConfig loadConfig.Config) {
+	config = assignConfig
+	for _, course := range config.Courses {
+		for _, majorSubjects := range course.Subjects.Major {
+			availabilitySubjects = append(availabilitySubjects, majorSubjects)
+		}
+		for _, minorSubjects := range course.Subjects.Minor {
+			availabilitySubjects = append(availabilitySubjects, minorSubjects)
+		}
+	}
+	configuration = true
 }

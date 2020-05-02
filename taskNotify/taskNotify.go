@@ -8,7 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var notifyChannel = "574884574778359844"
+const notifyChannel = "705594087474069504"
 
 func TaskNotify(session *discordgo.Session, db *sql.DB) {
 	session.ChannelMessageSend(notifyChannel, "***課題お知らせTIME***")
