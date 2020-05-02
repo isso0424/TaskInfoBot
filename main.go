@@ -66,7 +66,7 @@ func main() {
 		case <-sc:
 			loopContinue = false
 		case <-tc.C:
-			taskNotify.TaskNotify(discord, db)
+			taskNotify.TaskNotify(discord, db, config)
 		}
 	}
 	<-sc

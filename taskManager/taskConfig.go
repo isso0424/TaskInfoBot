@@ -17,25 +17,27 @@ func SetConfig(assignConfig loadConfig.Config) {
 		}
 	}
 
-	setNotifyChannnlIDs(assignConfig.Channels.Notify)
+	notifyChannelIDs = SetNotifyChannnlIDs(assignConfig.Channels.Notify)
 	setCourseSubjects(assignConfig.Courses)
 	isSetupped = true
 }
 
-func setNotifyChannnlIDs(notifyChannels loadConfig.Notify) {
+func SetNotifyChannnlIDs(notifyChannels loadConfig.Notify) map[string]string {
+	var notifys = map[string]string{}
 	major := notifyChannels.Major
-	notifyChannelIDs[major.General] = "MajorGeneral"
-	notifyChannelIDs[major.M] = "MajorM"
-	notifyChannelIDs[major.E] = "MajorE"
-	notifyChannelIDs[major.I] = "MajorI"
-	notifyChannelIDs[major.C] = "MajorC"
+	notifys[major.General] = "MajorGeneral"
+	notifys[major.M] = "MajorM"
+	notifys[major.E] = "MajorE"
+	notifys[major.I] = "MajorI"
+	notifys[major.C] = "MajorC"
 
 	minor := notifyChannels.Minor
-	notifyChannelIDs[minor.M] = "MinorM"
-	notifyChannelIDs[minor.E] = "MinorE"
-	notifyChannelIDs[minor.I] = "MinorI"
-	notifyChannelIDs[minor.C] = "MinorC"
-	notifyChannelIDs[minor.G] = "MinorG"
+	notifys[minor.M] = "MinorM"
+	notifys[minor.E] = "MinorE"
+	notifys[minor.I] = "MinorI"
+	notifys[minor.C] = "MinorC"
+	notifys[minor.G] = "MinorG"
+	return notifys
 }
 
 func setCourseSubjects(courses []loadConfig.Course) {
