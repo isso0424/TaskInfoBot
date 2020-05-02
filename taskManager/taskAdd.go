@@ -64,6 +64,10 @@ func strToLimit(message string) (time.Time, error) {
 	nowYear := now.Year()
 	dateStrings := strings.Split(message, "/")
 
+	if len(dateStrings) < 1 {
+		return time.Now(), errors.New("invalid patarn")
+	}
+
 	rawMonth := dateStrings[0]
 	rawDay := dateStrings[1]
 
