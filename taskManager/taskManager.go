@@ -12,7 +12,7 @@ import (
 
 var jst *time.Location = time.FixedZone("Asia/Tokyo", 9*60*60)
 var config loadConfig.Config
-var configuration = false
+var isSetupped = false
 var availabilitySubjects []string
 var notifyChannelIDs = map[string]string{}
 var courseSubjects = map[string][]string{}
@@ -70,7 +70,7 @@ func help(session *discordgo.Session, event *discordgo.MessageCreate) {
 func taskList(session *discordgo.Session, event *discordgo.MessageCreate, messages []string, db *sql.DB) {
 	var rows *sql.Rows
 	var err error
-	var sendMessages []string
+	var sendMessages = []string{}
 
 	if !checkChannelExistsInMap(event.ChannelID) {
 		session.ChannelMessageSend(event.ChannelID, "このチャンネルは課題確認用に設定されていません")
@@ -85,7 +85,7 @@ func taskList(session *discordgo.Session, event *discordgo.MessageCreate, messag
 		if checkSubjectInCourse(course, messages[2]) {
 			session.ChannelMessageSend(event.ChannelID, "指定された教科は別な系の教科です")
 		}
-		rows, err = db.Query(`SELECT * FROM TASKS WHERE COURSE=? OR SUBJECT=?`, course, messages[2])
+		rows, err = db.Query(`SELECT * FROM TASKS WHERE COURSE=? AND SUBJECT=?`, course, messages[2])
 	}
 
 	if err != nil {

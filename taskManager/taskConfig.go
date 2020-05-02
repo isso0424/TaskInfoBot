@@ -19,7 +19,7 @@ func SetConfig(assignConfig loadConfig.Config) {
 
 	setNotifyChannnlIDs(assignConfig.Channels.Notify)
 	setCourseSubjects(assignConfig.Courses)
-	configuration = true
+	isSetupped = true
 }
 
 func setNotifyChannnlIDs(notifyChannels loadConfig.Notify) {
