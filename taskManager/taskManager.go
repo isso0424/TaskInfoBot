@@ -21,7 +21,7 @@ func TaskManager(session *discordgo.Session, event *discordgo.MessageCreate, db 
 	messages := strings.Split(event.Content, " ")
 	command := messages[1]
 
-	if !configuration {
+	if !isSetupped {
 		session.ChannelMessageSend(event.ChannelID, "授業一覧が登録されていません")
 		return
 	}
@@ -70,7 +70,6 @@ func help(session *discordgo.Session, event *discordgo.MessageCreate) {
 func taskList(session *discordgo.Session, event *discordgo.MessageCreate, messages []string, db *sql.DB) {
 	var rows *sql.Rows
 	var err error
-	var sendMessages = []string{}
 
 	if !checkChannelExistsInMap(event.ChannelID) {
 		session.ChannelMessageSend(event.ChannelID, "このチャンネルは課題確認用に設定されていません")
@@ -93,6 +92,20 @@ func taskList(session *discordgo.Session, event *discordgo.MessageCreate, messag
 		return
 	}
 	defer rows.Close()
+
+	sendMessages := createList(rows)
+
+	for _, message := range sendMessages {
+		session.ChannelMessageSend(event.ChannelID, message)
+	}
+
+	if len(sendMessages) == 0 {
+		session.ChannelMessageSend(event.ChannelID, "このチャンネル向けに作成された課題はありません")
+	}
+}
+
+func createList(rows *sql.Rows) []string {
+	var sendMessages = []string{}
 	for rows.Next() {
 		var id int
 		var task string
@@ -107,14 +120,7 @@ func taskList(session *discordgo.Session, event *discordgo.MessageCreate, messag
 
 		sendMessages = append(sendMessages, fmt.Sprintf("```task: %s\nlimit: %s\nsubject: %s```", task, limit, subject))
 	}
-
-	for _, message := range sendMessages {
-		session.ChannelMessageSend(event.ChannelID, message)
-	}
-
-	if len(sendMessages) == 0 {
-		session.ChannelMessageSend(event.ChannelID, "このチャンネル向けに作成された課題はありません")
-	}
+	return sendMessages
 }
 
 func taskDelete(session *discordgo.Session, event *discordgo.MessageCreate, db *sql.DB, deleteValue string) {
@@ -124,22 +130,4 @@ func taskDelete(session *discordgo.Session, event *discordgo.MessageCreate, db *
 		return
 	}
 	session.ChannelMessageSend(event.ChannelID, fmt.Sprintf("%sを削除しました", deleteValue))
-}
-
-func checkChannelExistsInMap(channelID string) bool {
-	for notifyChannel, _ := range notifyChannelIDs {
-		if notifyChannel == channelID {
-			return true
-		}
-	}
-	return false
-}
-
-func checkSubjectInCourse(course string, subject string) bool {
-	for _, subject := range courseSubjects[course] {
-		if course == subject {
-			return true
-		}
-	}
-	return false
 }

@@ -109,25 +109,3 @@ func checkTaskNameConflict(task string, db *sql.DB) bool {
 	}
 	return false
 }
-
-func checkSubjectIsDefine(subject string) bool {
-	for _, tmpSubject := range availabilitySubjects {
-		if subject == tmpSubject {
-			return true
-		}
-	}
-	return false
-}
-
-func searchCourseWithSubject(subject string) string {
-	for key, courseSubject := range courseSubjects {
-		fmt.Printf(key)
-		for _, s := range courseSubject {
-			if subject == s {
-				return key
-			}
-		}
-	}
-
-	return ""
-}
