@@ -3,7 +3,6 @@ package taskManager
 import (
 	"TaskInfoBot/loadConfig"
 	"database/sql"
-	"fmt"
 	"strings"
 	"time"
 
@@ -16,8 +15,9 @@ var isSetupped = false
 var availabilitySubjects []string
 var notifyChannelIDs = map[string]string{}
 var courseSubjects = map[string][]string{}
+var db *sql.DB
 
-func TaskManager(session *discordgo.Session, event *discordgo.MessageCreate, db *sql.DB) {
+func TaskManager(session *discordgo.Session, event *discordgo.MessageCreate) {
 	messages := strings.Split(event.Content, " ")
 	command := messages[1]
 
@@ -26,108 +26,16 @@ func TaskManager(session *discordgo.Session, event *discordgo.MessageCreate, db 
 		return
 	}
 
+	channelID := event.ChannelID
+
 	switch command {
 	case "add":
-		taskAdd(session, event, messages, db)
+		taskAdd(session, channelID, messages)
 	case "list":
-		taskList(session, event, messages, db)
+		taskList(session, channelID, messages)
 	case "remove":
-		deleteValue := messages[2]
-		taskDelete(session, event, db, deleteValue)
+		taskDelete(session, channelID, messages)
 	case "help":
-		if len(messages) > 2 && messages[2] == "subject" {
-			subjectHelp(session, event, messages)
-		}
-		help(session, event)
+		help(session, channelID, messages)
 	}
-}
-
-func subjectHelp(session *discordgo.Session, event *discordgo.MessageCreate, messages []string) {
-	sendMessageBase := ""
-	for key, subjects := range courseSubjects {
-		sendMessage := ""
-		for index, subject := range subjects {
-			if index == 0 {
-				sendMessage = subject
-				continue
-			}
-			sendMessage += fmt.Sprintf(", %s", subject)
-		}
-		sendMessageBase += fmt.Sprintf("%s\n```%s```\n", key, sendMessage)
-	}
-	session.ChannelMessageSend(event.ChannelID, sendMessageBase)
-	return
-}
-
-func help(session *discordgo.Session, event *discordgo.MessageCreate) {
-	helpMessage := "***課題管理BOT***\n```!task add <task> <limit> <subject>```\ntask: 課題名\nlimit: 締め切り(初期値=翌日)\nsubject: 教科(初期値='')\n教科は省略できる\n"
-	helpMessage += "```!task list <subject>```\n課題一覧を表示します\n<subject>を指定すると教科ごとの絞り込みが可能です\n"
-	helpMessage += "```!task remove <task>```\n課題を課題名から検索して削除します"
-	helpMessage += "```!task help (subject)```\n使い方を表示します\nsubjectを付けると利用可能な教科を表示します"
-	session.ChannelMessageSend(event.ChannelID, helpMessage)
-}
-
-func taskList(session *discordgo.Session, event *discordgo.MessageCreate, messages []string, db *sql.DB) {
-	var rows *sql.Rows
-	var err error
-
-	if !checkChannelExistsInMap(event.ChannelID) {
-		session.ChannelMessageSend(event.ChannelID, "このチャンネルは課題確認用に設定されていません")
-		return
-	}
-
-	course := notifyChannelIDs[event.ChannelID]
-
-	if len(messages) < 3 {
-		rows, err = db.Query(`SELECT * FROM TASKS WHERE COURSE=?`, course)
-	} else {
-		if checkSubjectInCourse(course, messages[2]) {
-			session.ChannelMessageSend(event.ChannelID, "指定された教科は別な系の教科です")
-		}
-		rows, err = db.Query(`SELECT * FROM TASKS WHERE COURSE=? AND SUBJECT=?`, course, messages[2])
-	}
-
-	if err != nil {
-		session.ChannelMessageSend(event.ChannelID, "値の取り出しでエラーが発生しました")
-		return
-	}
-	defer rows.Close()
-
-	sendMessages := createList(rows)
-
-	for _, message := range sendMessages {
-		session.ChannelMessageSend(event.ChannelID, message)
-	}
-
-	if len(sendMessages) == 0 {
-		session.ChannelMessageSend(event.ChannelID, "このチャンネル向けに作成された課題はありません")
-	}
-}
-
-func createList(rows *sql.Rows) []string {
-	var sendMessages = []string{}
-	for rows.Next() {
-		var id int
-		var task string
-		var limit string
-		var subject string
-		var course string
-
-		if err := rows.Scan(&id, &task, &limit, &subject, &course); err != nil {
-			fmt.Println(err)
-			continue
-		}
-
-		sendMessages = append(sendMessages, fmt.Sprintf("```task: %s\nlimit: %s\nsubject: %s```", task, limit, subject))
-	}
-	return sendMessages
-}
-
-func taskDelete(session *discordgo.Session, event *discordgo.MessageCreate, db *sql.DB, deleteValue string) {
-	_, err := db.Exec(`DELETE FROM TASKS WHERE TASK=?`, deleteValue)
-	if err != nil {
-		session.ChannelMessageSend(event.ChannelID, "指定された名前の課題は存在しません")
-		return
-	}
-	session.ChannelMessageSend(event.ChannelID, fmt.Sprintf("%sを削除しました", deleteValue))
 }

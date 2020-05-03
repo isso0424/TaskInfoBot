@@ -37,7 +37,7 @@ func main() {
 	createFirstTable()
 
 	config := loadConfig.LoadConfig()
-	taskManager.SetConfig(config)
+	taskManager.SetConfig(config, db)
 
 	discord, err := discordgo.New()
 	discord.Token = loadTokenFromEnv()
@@ -87,7 +87,7 @@ func onMessageCreate(session *discordgo.Session, event *discordgo.MessageCreate)
 	}
 
 	if strings.HasPrefix(event.Content, "!task") && len(event.Content) >= 8 {
-		taskManager.TaskManager(session, event, db)
+		taskManager.TaskManager(session, event)
 		return
 	}
 }

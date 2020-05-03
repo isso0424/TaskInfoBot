@@ -1,7 +1,6 @@
 package taskManager
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
@@ -11,18 +10,18 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func taskAdd(session *discordgo.Session, event *discordgo.MessageCreate, messages []string, db *sql.DB) {
+func taskAdd(session *discordgo.Session, channelID string, messages []string) {
 	var task string
 	var limit time.Time
 	var subject string
-	if event.ChannelID != config.Channels.Regist {
-		session.ChannelMessageSend(event.ChannelID, fmt.Sprintf("課題を登録する際は<#%s>で行ってください", config.Channels.Regist))
+	if channelID != config.Channels.Regist {
+		session.ChannelMessageSend(channelID, fmt.Sprintf("課題を登録する際は<#%s>で行ってください", config.Channels.Regist))
 		return
 	}
 	switch len(messages) {
 	case 2, 3:
 		// 引数不足により失敗
-		session.ChannelMessageSend(event.ChannelID, "引数が足りません\n最低でも2個は必要です")
+		session.ChannelMessageSend(channelID, "引数が足りません\n最低でも2個は必要です")
 		return
 
 	case 4:
@@ -39,24 +38,24 @@ func taskAdd(session *discordgo.Session, event *discordgo.MessageCreate, message
 		subject = messages[3]
 		limit, err = strToLimit(messages[4])
 		if err != nil {
-			session.ChannelMessageSend(event.ChannelID, "日付の指定は n/m で指定してください")
+			session.ChannelMessageSend(channelID, "日付の指定は n/m で指定してください")
 			return
 		}
 	}
 	if !checkSubjectIsDefine(subject) {
-		session.ChannelMessageSend(event.ChannelID, "データの作成に失敗しました\n有効な教科の名前を指定してください")
+		session.ChannelMessageSend(channelID, "データの作成に失敗しました\n有効な教科の名前を指定してください")
 		return
 	}
 	course := searchCourseWithSubject(subject)
-	err := createTask(task, limit, subject, course, db)
+	err := createTask(task, limit, subject, course)
 
 	if err != nil {
-		session.ChannelMessageSend(event.ChannelID, "データの作成に失敗しました\n課題の名前の重複などが無いか確認してください")
+		session.ChannelMessageSend(channelID, "データの作成に失敗しました\n課題の名前の重複などが無いか確認してください")
 		return
 	}
 
 	message := fmt.Sprintf("```name: %s\nlimit: %d/%d\nsubject: %s```\nで新しい課題を作成しました。", task, int(limit.Month()), limit.Day(), subject)
-	session.ChannelMessageSend(event.ChannelID, message)
+	session.ChannelMessageSend(channelID, message)
 }
 
 func strToLimit(message string) (time.Time, error) {
@@ -89,9 +88,9 @@ func strToLimit(message string) (time.Time, error) {
 	return createdTime, nil
 }
 
-func createTask(task string, limitDate time.Time, subject string, course string, db *sql.DB) error {
+func createTask(task string, limitDate time.Time, subject string, course string) error {
 	limit := fmt.Sprintf("%d-%d-%d", limitDate.Year(), int(limitDate.Month()), limitDate.Day())
-	if checkTaskNameConflict(task, db) {
+	if checkTaskNameConflict(task) {
 		return errors.New("NAME IS CONFLICTED")
 	}
 	_, err := db.Exec(`INSERT INTO TASKS("TASK","LIMIT","SUBJECT","COURSE") VALUES(?,?,?,?)`, task, limit, subject, course)
@@ -101,7 +100,7 @@ func createTask(task string, limitDate time.Time, subject string, course string,
 	return nil
 }
 
-func checkTaskNameConflict(task string, db *sql.DB) bool {
+func checkTaskNameConflict(task string) bool {
 	rows, err := db.Query(`SELECT * FROM TASKS WHERE TASK=?`, task)
 	defer rows.Close()
 	if err != nil {

@@ -32,17 +32,28 @@ func createNotify(session *discordgo.Session, db *sql.DB, notifyChannel string, 
 		tasks := getTaskWithLimit(db, course, day)
 
 		if len(tasks) == 0 {
-			tasks = []string{fmt.Sprintf("%s提出期限の課題はありません", day)}
+			tasks = []string{fmt.Sprintf("%s提出期限の課題はありません", getDay(day))}
 		} else {
-			tasks = insertToHead(tasks, fmt.Sprintf("%s提出期限の課題は以下のとおりです", day))
+			tasks = insertToHead(tasks, fmt.Sprintf("%s提出期限の課題は以下のとおりです", getDay(day)))
 		}
 
 		notifyMessages = append(
 			notifyMessages,
-			getTaskWithLimit(db, course, day)...,
+			tasks...,
 		)
 	}
 	return notifyMessages
+}
+
+func getDay(day string) string {
+	switch day {
+	case "today":
+		return "今日"
+	case "tomorrow":
+		return "明日"
+	default:
+		return ""
+	}
 }
 
 func insertToHead(slice []string, insertValue string) []string {
@@ -57,15 +68,12 @@ func getDate(date time.Time) string {
 
 func getTaskWithLimit(db *sql.DB, course string, targetDay string) []string {
 	var date string
-	var day string
 
 	switch targetDay {
 	case "today":
 		date = getDate(time.Now())
-		day = "今日"
 	case "tomorrow":
 		date = getDate(time.Now().Add(time.Duration(24) * time.Hour))
-		day = "明日"
 	}
 
 	rows, err := db.Query(`SELECT * FROM TASKS WHERE "LIMIT"=? AND "COURSE"=?`, date, course)

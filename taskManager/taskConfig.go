@@ -2,10 +2,11 @@ package taskManager
 
 import (
 	"TaskInfoBot/loadConfig"
+	"database/sql"
 	"fmt"
 )
 
-func SetConfig(assignConfig loadConfig.Config) {
+func SetConfig(assignConfig loadConfig.Config, givenDB *sql.DB) {
 	config = assignConfig
 	for _, course := range config.Courses {
 		for _, majorSubjects := range course.Subjects.Major {
@@ -19,6 +20,7 @@ func SetConfig(assignConfig loadConfig.Config) {
 
 	notifyChannelIDs = SetNotifyChannnlIDs(assignConfig.Channels.Notify)
 	setCourseSubjects(assignConfig.Courses)
+	db = givenDB
 	isSetupped = true
 }
 
