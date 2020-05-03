@@ -1,7 +1,5 @@
 package taskManager
 
-import "fmt"
-
 func checkChannelExistsInMap(channelID string) bool {
 	for notifyChannel, _ := range notifyChannelIDs {
 		if notifyChannel == channelID {
@@ -31,7 +29,6 @@ func checkSubjectIsDefine(subject string) bool {
 
 func searchCourseWithSubject(subject string) string {
 	for key, courseSubject := range courseSubjects {
-		fmt.Printf(key)
 		for _, s := range courseSubject {
 			if subject == s {
 				return key

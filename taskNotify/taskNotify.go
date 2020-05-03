@@ -11,18 +11,51 @@ import (
 )
 
 func TaskNotify(session *discordgo.Session, db *sql.DB, config loadConfig.Config) {
+	fmt.Println("start notify")
 	for notifyChannel, course := range taskManager.SetNotifyChannnlIDs(config.Channels.Notify) {
-		session.ChannelMessageSend(notifyChannel, "***課題お知らせTIME***")
-		getTaskWithLimit(session, db, notifyChannel, course, "today")
-		getTaskWithLimit(session, db, notifyChannel, course, "tomorrow")
+		notifyMessages := createNotify(session, db, notifyChannel, course)
+		if len(notifyMessages) == 3 {
+			continue
+		}
+
+		for _, notify := range notifyMessages {
+			session.ChannelMessageSend(notifyChannel, notify)
+		}
 	}
+	fmt.Println("finish notify")
+}
+
+func createNotify(session *discordgo.Session, db *sql.DB, notifyChannel string, course string) []string {
+	notifyDay := []string{"today", "tomorrow"}
+	notifyMessages := []string{"***課題お知らせTIME***"}
+	for _, day := range notifyDay {
+		tasks := getTaskWithLimit(db, course, day)
+
+		if len(tasks) == 0 {
+			tasks = []string{fmt.Sprintf("%s提出期限の課題はありません", day)}
+		} else {
+			tasks = insertToHead(tasks, fmt.Sprintf("%s提出期限の課題は以下のとおりです", day))
+		}
+
+		notifyMessages = append(
+			notifyMessages,
+			getTaskWithLimit(db, course, day)...,
+		)
+	}
+	return notifyMessages
+}
+
+func insertToHead(slice []string, insertValue string) []string {
+	slice = append(slice[:1], slice[0:]...)
+	slice[0] = insertValue
+	return slice
 }
 
 func getDate(date time.Time) string {
 	return fmt.Sprintf("%d-%d-%d", date.Year(), int(date.Month()), date.Day())
 }
 
-func getTaskWithLimit(session *discordgo.Session, db *sql.DB, notifyChannel string, course string, targetDay string) {
+func getTaskWithLimit(db *sql.DB, course string, targetDay string) []string {
 	var date string
 	var day string
 
@@ -40,7 +73,7 @@ func getTaskWithLimit(session *discordgo.Session, db *sql.DB, notifyChannel stri
 
 	if err != nil {
 		fmt.Println(err)
-		return
+		return []string{"Error with database"}
 	}
 
 	var sendMessages = []string{}
@@ -58,14 +91,6 @@ func getTaskWithLimit(session *discordgo.Session, db *sql.DB, notifyChannel stri
 
 		sendMessages = append(sendMessages, fmt.Sprintf("```name: %s\nsubject: %s```", task, subject))
 	}
-	if len(sendMessages) == 0 {
-		session.ChannelMessageSend(notifyChannel, fmt.Sprintf("%s提出期限の課題はありません", day))
-		return
-	}
-	session.ChannelMessageSend(notifyChannel, fmt.Sprintf("%s提出期限の課題は以下のとおりです", day))
 
-	for _, message := range sendMessages {
-		session.ChannelMessageSend(notifyChannel, message)
-	}
-
+	return sendMessages
 }

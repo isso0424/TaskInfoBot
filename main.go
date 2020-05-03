@@ -59,6 +59,8 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	tc := time.NewTicker(time.Hour * 3)
 
+	fmt.Println("Bot booted!!!")
+
 	loopContinue := true
 
 	for loopContinue {
