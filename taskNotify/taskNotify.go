@@ -32,7 +32,7 @@ func getTaskWithLimit(session *discordgo.Session, db *sql.DB, notifyChannel stri
 		day = "今日"
 	case "tomorrow":
 		date = getDate(time.Now().Add(time.Duration(24) * time.Hour))
-		day = "昨日"
+		day = "明日"
 	}
 
 	rows, err := db.Query(`SELECT * FROM TASKS WHERE "LIMIT"=? AND "COURSE"=?`, date, course)
