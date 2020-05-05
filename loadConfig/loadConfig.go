@@ -11,7 +11,6 @@ type Config struct {
 }
 
 type Course struct {
-	Name     string  `json:"name"`
 	Alias    string  `json:"alias"`
 	Subjects subject `json:"subjects"`
 }
@@ -27,24 +26,8 @@ type Channels struct {
 }
 
 type Notify struct {
-	Major major `json:"major"`
-	Minor minor `json:"minor"`
-}
-
-type major struct {
-	General string `json:"General"`
-	M       string `json:"M"`
-	E       string `json:"E"`
-	I       string `json:"I"`
-	C       string `json:"C"`
-}
-
-type minor struct {
-	M string `json:"M"`
-	E string `json:"E"`
-	I string `json:"I"`
-	C string `json:"C"`
-	G string `json:"G"`
+	Major map[string]string `json:"major"`
+	Minor map[string]string `json:"minor"`
 }
 
 func LoadConfig() Config {

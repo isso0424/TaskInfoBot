@@ -27,18 +27,15 @@ func SetConfig(assignConfig loadConfig.Config, givenDB *sql.DB) {
 func SetNotifyChannnlIDs(notifyChannels loadConfig.Notify) map[string]string {
 	var notifys = map[string]string{}
 	major := notifyChannels.Major
-	notifys[major.General] = "MajorGeneral"
-	notifys[major.M] = "MajorM"
-	notifys[major.E] = "MajorE"
-	notifys[major.I] = "MajorI"
-	notifys[major.C] = "MajorC"
+	for course, channelID := range major {
+		notifys[channelID] = fmt.Sprintf("Major%s", course)
+	}
 
 	minor := notifyChannels.Minor
-	notifys[minor.M] = "MinorM"
-	notifys[minor.E] = "MinorE"
-	notifys[minor.I] = "MinorI"
-	notifys[minor.C] = "MinorC"
-	notifys[minor.G] = "MinorG"
+	for course, channelID := range minor {
+		notifys[channelID] = fmt.Sprintf("Minor%s", course)
+	}
+
 	return notifys
 }
 
