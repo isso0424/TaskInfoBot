@@ -12,6 +12,7 @@ import (
 
 func TaskNotify(session *discordgo.Session, db *sql.DB, config loadConfig.Config) {
 	fmt.Println("start notify")
+	deleteDeadlinePassedTask(time.Now().Add(time.Duration(-24)*time.Hour), db)
 	for notifyChannel, course := range taskManager.SetNotifyChannnlIDs(config.Channels.Notify) {
 		notifyMessages := createNotify(session, db, notifyChannel, course)
 		if len(notifyMessages) == 3 {
@@ -101,4 +102,12 @@ func getTaskWithLimit(db *sql.DB, course string, targetDay string) []string {
 	}
 
 	return sendMessages
+}
+
+func deleteDeadlinePassedTask(date time.Time, db *sql.DB) {
+	dateString := getDate(date)
+	_, err := db.Exec(`DELETE FROM TASKS WHERE "LIMIT"=?`, dateString)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

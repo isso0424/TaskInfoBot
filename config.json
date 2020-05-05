@@ -1,7 +1,6 @@
 {
   "courses": [
     {
-      "name": "一般科目",
       "alias": "General",
       "subjects": {
         "major": [
@@ -13,7 +12,6 @@
       }
     },
     {
-      "name": "機械・制御",
       "alias": "M",
       "subjects": {
         "major": [
@@ -26,7 +24,6 @@
       }
     },
     {
-      "name": "電気・電子",
       "alias": "E",
       "subjects": {
         "major": [
@@ -39,7 +36,6 @@
       }
     },
     {
-      "name": "情報",
       "alias": "I",
       "subjects": {
         "major": [
@@ -52,7 +48,6 @@
       }
     },
     {
-      "name": "化学・生物・環境",
       "alias": "C",
       "subjects": {
         "major": [
@@ -65,7 +60,6 @@
       }
     },
     {
-      "name": "グローバル",
       "alias": "G",
       "subjects": {
         "major": [],
