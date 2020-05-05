@@ -3,8 +3,6 @@ package taskManager
 import (
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -61,24 +59,14 @@ func taskAdd(session *discordgo.Session, channelID string, messages []string) {
 func strToLimit(message string) (time.Time, error) {
 	now := time.Now()
 	nowYear := now.Year()
-	dateStrings := strings.Split(message, "/")
+	datesMap, err := checkDatePatarn(message)
 
-	if len(dateStrings) < 1 {
-		return time.Now(), errors.New("invalid patarn")
+	if err != nil {
+		return time.Now(), nil
 	}
 
-	rawMonth := dateStrings[0]
-	rawDay := dateStrings[1]
-
-	month, err := strconv.Atoi(rawMonth)
-	if err != nil || month < 1 || month > 12 {
-		return time.Now(), errors.New("mouth cannot convert to int")
-	}
-
-	day, err := strconv.Atoi(rawDay)
-	if err != nil || day < 1 || day > 31 {
-		return time.Now(), errors.New("day cannot convert to int")
-	}
+	month := datesMap["month"]
+	day := datesMap["day"]
 
 	createdTime := time.Date(nowYear, time.Month(month), day, 23, 59, 59, 0, jst)
 
@@ -98,17 +86,4 @@ func createTask(task string, limitDate time.Time, subject string, course string)
 		return error(err)
 	}
 	return nil
-}
-
-func checkTaskNameConflict(task string) bool {
-	rows, err := db.Query(`SELECT * FROM TASKS WHERE TASK=?`, task)
-	defer rows.Close()
-	if err != nil {
-		return true
-	}
-
-	for rows.Next() {
-		return true
-	}
-	return false
 }
