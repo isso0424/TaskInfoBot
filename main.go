@@ -57,7 +57,7 @@ func main() {
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	tc := time.NewTicker(time.Minute * 1)
+	tc := time.NewTicker(time.Hour * 3)
 
 	fmt.Println("Bot booted!!!")
 
