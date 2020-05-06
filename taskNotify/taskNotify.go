@@ -10,11 +10,13 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func TaskNotify(session *discordgo.Session, db *sql.DB, config loadConfig.Config) {
+var db *sql.DB
+
+func TaskNotify(session *discordgo.Session, config loadConfig.Config) {
 	fmt.Println("start notify")
-	deleteDeadlinePassedTask(time.Now().Add(time.Duration(-24)*time.Hour), db)
+	deleteDeadlinePassedTask(time.Now().Add(time.Duration(-24) * time.Hour))
 	for notifyChannel, course := range taskManager.SetNotifyChannnlIDs(config.Channels.Notify) {
-		notifyMessages := createNotify(session, db, notifyChannel, course)
+		notifyMessages := createNotify(session, notifyChannel, course)
 		if len(notifyMessages) == 3 {
 			continue
 		}
@@ -26,11 +28,11 @@ func TaskNotify(session *discordgo.Session, db *sql.DB, config loadConfig.Config
 	fmt.Println("finish notify")
 }
 
-func createNotify(session *discordgo.Session, db *sql.DB, notifyChannel string, course string) []string {
+func createNotify(session *discordgo.Session, notifyChannel string, course string) []string {
 	notifyDay := []string{"today", "tomorrow"}
 	notifyMessages := []string{"***課題お知らせTIME***"}
 	for _, day := range notifyDay {
-		tasks := getTaskWithLimit(db, course, day)
+		tasks := getTaskWithLimit(course, day)
 
 		if len(tasks) == 0 {
 			tasks = []string{fmt.Sprintf("%s提出期限の課題はありません", getDay(day))}
@@ -67,7 +69,7 @@ func getDate(date time.Time) string {
 	return fmt.Sprintf("%d-%d-%d", date.Year(), int(date.Month()), date.Day())
 }
 
-func getTaskWithLimit(db *sql.DB, course string, targetDay string) []string {
+func getTaskWithLimit(course string, targetDay string) []string {
 	var date string
 
 	switch targetDay {
@@ -104,10 +106,14 @@ func getTaskWithLimit(db *sql.DB, course string, targetDay string) []string {
 	return sendMessages
 }
 
-func deleteDeadlinePassedTask(date time.Time, db *sql.DB) {
+func deleteDeadlinePassedTask(date time.Time) {
 	dateString := getDate(date)
 	_, err := db.Exec(`DELETE FROM TASKS WHERE "LIMIT"=?`, dateString)
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func SetDB(givenDB *sql.DB) {
+	db = givenDB
 }

@@ -38,6 +38,7 @@ func main() {
 
 	config := loadConfig.LoadConfig()
 	taskManager.SetConfig(config, db)
+	taskNotify.SetDB(db)
 
 	discord, err := discordgo.New()
 	discord.Token = loadTokenFromEnv()
@@ -68,7 +69,7 @@ func main() {
 		case <-sc:
 			loopContinue = false
 		case <-tc.C:
-			taskNotify.TaskNotify(discord, db, config)
+			taskNotify.TaskNotify(discord, config)
 		}
 	}
 	<-sc
