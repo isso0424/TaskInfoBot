@@ -43,15 +43,22 @@ type listError struct {
 }
 
 type removeMessage struct {
-	Success       string
+	Success string
+	Err     removeError
+}
+
+type removeError struct {
 	NotEnoughArgs string
 	TaskNotFound  string
 }
 
 func CreateTaskManagerMessage() TaskManagerMessage {
-	var messages TaskManagerMessage
+	messages := TaskManagerMessage{}
 
-	addMessages := createTaskAddMessage()
+	messages.Add = createTaskAddMessage()
+	messages.Help = createTaskHelpMessage()
+	messages.List = createTaskListMessage()
+	messages.Remove = createTaskRemoveMessage()
 
 	return messages
 }
@@ -73,4 +80,48 @@ func createAddErrorMessage() addError {
 	addErrors.DuplicateName = "データの作成に失敗しました\n課題の名前の重複などが無いか確認してください"
 
 	return addErrors
+}
+
+func createTaskHelpMessage() helpMessage {
+	helpMessages := helpMessage{}
+
+	helpMessages.General = "***課題管理BOT***\n```!task add <task> <limit> <subject>```\ntask: 課題名\nlimit: 締め切り(初期値=翌日)\nsubject: 教科(初期値='')\n教科は省略できる\n```!task list <subject>```\n課題一覧を表示します\n<subject>を指定すると教科ごとの絞り込みが可能です\n```!task remove <task>```\n課題を課題名から検索して削除します```!task help (subject)```\n使い方を表示します\nsubjectを付けると利用可能な教科を表示します"
+	helpMessages.Subjects = subjectsTemplate{
+		EachSubject: ", %s",
+		EachCourse:  "%s\n```%s```\n",
+	}
+
+	return helpMessages
+}
+
+func createTaskListMessage() listMessage {
+	listMessages := listMessage{}
+
+	listMessages.Err = createListErrorMessage()
+	listMessages.Template = "```task: %s\nlimit: %s\nsubject: %s```"
+
+	return listMessages
+}
+
+func createListErrorMessage() listError {
+	listErr := listError{}
+
+	listErr.NotCheckTaskChannel = "このチャンネルは課題確認用に設定されていません"
+	listErr.SubjectIsNotInCourse = "指定された教科は現在のチャンネルの系に存在しません"
+	listErr.GetValueError = "値の取り出しでエラーが発生しました"
+	listErr.TaskNotFound = "このチャンネル向けに作成された課題はありません"
+
+	return listErr
+}
+
+func createTaskRemoveMessage() removeMessage {
+	removeMessages := removeMessage{}
+
+	removeMessages.Success = "%sを削除しました"
+	removeMessages.Err = removeError{
+		NotEnoughArgs: "引数が足りません\n削除する課題の名前を指定してください",
+		TaskNotFound:  "指定された名前の課題は存在しません",
+	}
+
+	return removeMessages
 }
