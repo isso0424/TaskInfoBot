@@ -79,7 +79,7 @@ func strToLimit(message string) (time.Time, error) {
 func createTask(task string, limitDate time.Time, subject string, course string) error {
 	limit := fmt.Sprintf("%d-%d-%d", limitDate.Year(), int(limitDate.Month()), limitDate.Day())
 	if checkTaskNameConflict(task) {
-		return errors.New("NAME IS CONFLICTED")
+		return errors.New("NAME IS DUPLICATED")
 	}
 	_, err := db.Exec(`INSERT INTO TASKS("TASK","LIMIT","SUBJECT","COURSE") VALUES(?,?,?,?)`, task, limit, subject, course)
 	if err != nil {

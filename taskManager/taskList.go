@@ -22,7 +22,7 @@ func taskList(session *discordgo.Session, channelID string, messages []string) {
 		rows, err = db.Query(`SELECT * FROM TASKS WHERE COURSE=?`, course)
 	} else {
 		if checkSubjectInCourse(course, messages[2]) {
-			session.ChannelMessageSend(channelID, "指定された教科は別な系の教科です")
+			session.ChannelMessageSend(channelID, "指定された教科は現在のチャンネルの系に存在しません")
 		}
 		rows, err = db.Query(`SELECT * FROM TASKS WHERE COURSE=? AND SUBJECT=?`, course, messages[2])
 	}
