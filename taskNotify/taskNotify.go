@@ -12,6 +12,7 @@ import (
 
 var db *sql.DB
 
+// TaskNotify is a function that sends task regularly notications
 func TaskNotify(session *discordgo.Session, config loadConfig.Config) {
 	fmt.Println("start notify")
 	deleteDeadlinePassedTask(time.Now().Add(time.Duration(-24) * time.Hour))
@@ -114,6 +115,7 @@ func deleteDeadlinePassedTask(date time.Time) {
 	}
 }
 
+// SetDB is a function that set database to this package
 func SetDB(givenDB *sql.DB) {
 	db = givenDB
 }

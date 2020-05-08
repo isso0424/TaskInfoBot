@@ -21,7 +21,7 @@ var db *sql.DB
 
 func main() {
 	dbFileName := "./db.sqlite3"
-	if fileNotExists(dbFileName) {
+	if !fileExists(dbFileName) {
 		file, err := os.OpenFile(dbFileName, os.O_WRONLY|os.O_CREATE, 0666)
 		defer file.Close()
 		if err != nil {
@@ -93,7 +93,7 @@ func onMessageCreate(session *discordgo.Session, event *discordgo.MessageCreate)
 	}
 }
 
-func loadTokenFromEnv() string {
+func loadTokenFromEnv() (token string) {
 	fp, err := os.Open(".env")
 	defer fp.Close()
 	if err != nil {
@@ -101,14 +101,15 @@ func loadTokenFromEnv() string {
 	}
 
 	scanner := bufio.NewScanner(fp)
-	var token string
 	for scanner.Scan() {
 		token = scanner.Text()
 	}
-	return fmt.Sprintf("Bot %s", token)
+	token = fmt.Sprintf("Bot %s", token)
+	return
 }
 
-func fileNotExists(filename string) bool {
+func fileExists(filename string) (exist bool) {
 	_, err := os.Stat(filename)
-	return err != nil
+	exist = err != nil
+	return
 }

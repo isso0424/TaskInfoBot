@@ -1,40 +1,50 @@
 package taskManager
 
-func checkChannelExistsInMap(channelID string) bool {
-	for notifyChannel, _ := range notifyChannelIDs {
+func checkChannelExistsInMap(channelID string) (exist bool) {
+	exist = true
+	for notifyChannel := range notifyChannelIDs {
 		if notifyChannel == channelID {
-			return true
+			return
 		}
 	}
-	return false
+
+	exist = false
+	return
 }
 
-func checkSubjectInCourse(course string, subject string) bool {
+func checkSubjectInCourse(course string, subject string) (isSubjectInCourse bool) {
+	isSubjectInCourse = true
 	for _, subject := range courseSubjects[course] {
 		if course == subject {
-			return true
+			return
 		}
 	}
-	return false
+
+	isSubjectInCourse = false
+	return
 }
 
-func checkSubjectIsDefine(subject string) bool {
+func checkSubjectIsDefine(subject string) (subjectIsDefine bool) {
+	subjectIsDefine = true
 	for _, tmpSubject := range availabilitySubjects {
 		if subject == tmpSubject {
-			return true
+			return
 		}
 	}
-	return false
+
+	subjectIsDefine = false
+	return
 }
 
-func searchCourseWithSubject(subject string) string {
+func searchCourseWithSubject(subject string) (findSubject string) {
+	findSubject = ""
 	for key, courseSubject := range courseSubjects {
 		for _, s := range courseSubject {
 			if subject == s {
-				return key
+				findSubject = key
+				return
 			}
 		}
 	}
-
-	return ""
+	return
 }
