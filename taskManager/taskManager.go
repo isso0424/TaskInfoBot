@@ -2,6 +2,7 @@ package taskManager
 
 import (
 	"TaskInfoBot/loadConfig"
+	"TaskInfoBot/messageController"
 	"database/sql"
 	"strings"
 	"time"
@@ -15,14 +16,16 @@ var isSetupped = false
 var availabilitySubjects []string
 var notifyChannelIDs = map[string]string{}
 var courseSubjects = map[string][]string{}
+var generalError = messageController.CreateGeneralErrorMessage()
 var db *sql.DB
 
+// TaskManager is a function that root of this package
 func TaskManager(session *discordgo.Session, event *discordgo.MessageCreate) {
 	messages := strings.Split(event.Content, " ")
 	command := messages[1]
 
 	if !isSetupped {
-		session.ChannelMessageSend(event.ChannelID, "授業一覧が登録されていません")
+		session.ChannelMessageSend(event.ChannelID, generalError.NotSetupped)
 		return
 	}
 

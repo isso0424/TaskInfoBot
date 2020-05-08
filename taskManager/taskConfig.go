@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// SetConfig is a function that sets taskManager Config
 func SetConfig(assignConfig loadConfig.Config, givenDB *sql.DB) {
 	config = assignConfig
 	for _, course := range config.Courses {
@@ -24,8 +25,10 @@ func SetConfig(assignConfig loadConfig.Config, givenDB *sql.DB) {
 	isSetupped = true
 }
 
-func SetNotifyChannnlIDs(notifyChannels loadConfig.Notify) map[string]string {
-	var notifys = map[string]string{}
+// SetNotifyChannnlIDs is a function that creates notify channels map
+// Key is channelID
+// Value is course name
+func SetNotifyChannnlIDs(notifyChannels loadConfig.Notify) (notifys map[string]string) {
 	major := notifyChannels.Major
 	for course, channelID := range major {
 		notifys[channelID] = fmt.Sprintf("Major%s", course)

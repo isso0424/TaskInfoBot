@@ -6,24 +6,29 @@ import (
 	"strings"
 )
 
-func checkTaskNameConflict(task string) bool {
-	rows, err := db.Query(`SELECT * FROM TASKS WHERE TASK=?`, task)
+func checkTaskNameConflict(task string) (isConflict bool) {
+	isConflict = true
+
+	rows, err := db.Query(`SELECT * FROM TASKS WHERE TASK=? LIMIT=1`, task)
 	defer rows.Close()
 	if err != nil {
-		return true
+		return
 	}
 
 	for rows.Next() {
-		return true
+		return
 	}
-	return false
+
+	isConflict = false
+	return
 }
 
-func checkDatePatarn(date string) (map[string]int, error) {
+func checkDatePatarn(date string) (days map[string]int, err error) {
 	dateStrings := strings.Split(date, "/")
 
 	if len(dateStrings) < 1 {
-		return nil, errors.New("invalid patarn")
+		err = errors.New("invalid patarn")
+		return
 	}
 
 	rawMonth := dateStrings[0]
@@ -31,13 +36,16 @@ func checkDatePatarn(date string) (map[string]int, error) {
 
 	month, err := strconv.Atoi(rawMonth)
 	if err != nil || month < 1 || month > 12 {
-		return nil, errors.New("mouth cannot convert to int")
+		err = errors.New("mouth cannot convert to int")
+		return
 	}
 
 	day, err := strconv.Atoi(rawDay)
 	if err != nil || day < 1 || day > 31 {
-		return nil, errors.New("day cannot convert to int")
+		err = errors.New("day cannot convert to int")
+		return
 	}
 
-	return map[string]int{"month": month, "day": day}, nil
+	days = map[string]int{"month": month, "day": day}
+	return
 }

@@ -1,18 +1,22 @@
 package taskManager
 
 import (
+	"TaskInfoBot/messageController"
 	"database/sql"
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 )
 
+var listTemplates = messageController.CreateTaskListMessageTemplate()
+var listError = messageController.CreateListErrorMessage()
+
 func taskList(session *discordgo.Session, channelID string, messages []string) {
 	var rows *sql.Rows
 	var err error
 
 	if !checkChannelExistsInMap(channelID) {
-		session.ChannelMessageSend(channelID, "このチャンネルは課題確認用に設定されていません")
+		session.ChannelMessageSend(channelID, listError.NotCheckTaskChannel)
 		return
 	}
 
@@ -22,13 +26,13 @@ func taskList(session *discordgo.Session, channelID string, messages []string) {
 		rows, err = db.Query(`SELECT * FROM TASKS WHERE COURSE=?`, course)
 	} else {
 		if checkSubjectInCourse(course, messages[2]) {
-			session.ChannelMessageSend(channelID, "指定された教科は現在のチャンネルの系に存在しません")
+			session.ChannelMessageSend(channelID, listError.SubjectIsNotInCourse)
 		}
 		rows, err = db.Query(`SELECT * FROM TASKS WHERE COURSE=? AND SUBJECT=?`, course, messages[2])
 	}
 
 	if err != nil {
-		session.ChannelMessageSend(channelID, "値の取り出しでエラーが発生しました")
+		session.ChannelMessageSend(channelID, listError.GetValueError)
 		return
 	}
 	defer rows.Close()
@@ -40,7 +44,7 @@ func taskList(session *discordgo.Session, channelID string, messages []string) {
 	}
 
 	if len(sendMessages) == 0 {
-		session.ChannelMessageSend(channelID, "このチャンネル向けに作成された課題はありません")
+		session.ChannelMessageSend(channelID, listError.TaskNotFound)
 	}
 }
 
@@ -58,7 +62,7 @@ func createList(rows *sql.Rows) []string {
 			continue
 		}
 
-		sendMessages = append(sendMessages, fmt.Sprintf("```task: %s\nlimit: %s\nsubject: %s```", task, limit, subject))
+		sendMessages = append(sendMessages, fmt.Sprintf(listTemplates, task, limit, subject))
 	}
 	return sendMessages
 }
