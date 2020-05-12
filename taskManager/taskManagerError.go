@@ -1,6 +1,7 @@
 package taskManager
 
 import (
+	"fmt"
 	"errors"
 	"strconv"
 	"strings"
@@ -9,11 +10,12 @@ import (
 func checkTaskNameConflict(task string) (isConflict bool) {
 	isConflict = true
 
-	rows, err := db.Query(`SELECT * FROM TASKS WHERE TASK=? LIMIT=1`, task)
-	defer rows.Close()
+	rows, err := db.Query(`SELECT * FROM TASKS WHERE TASK=? LIMIT 1`, task)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		return
