@@ -30,6 +30,7 @@ func SetConfig(assignConfig loadConfig.Config, givenDB *sql.DB) {
 // Value is course name
 func SetNotifyChannnlIDs(notifyChannels loadConfig.Notify) (notifys map[string]string) {
 	major := notifyChannels.Major
+	notifys = map[string]string{}
 	for course, channelID := range major {
 		notifys[channelID] = fmt.Sprintf("Major%s", course)
 	}
